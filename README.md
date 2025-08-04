@@ -2,7 +2,7 @@ SocialDistribution
 ===================================
 
 ## Deployed Website
-[Social Distribution Website]([https://link-url-here.org](https://social-distribution-aqua-simon-5ef58288e759.herokuapp.com/)
+[Social Distribution Website]([https://social-distribution-aqua-simon-5ef58288e759.herokuapp.com/])
 
 ## License
 
