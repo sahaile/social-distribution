@@ -1,0 +1,147 @@
+<!-- templates/authors/friends_list.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Friends</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="/static/css/ui.css" />
+    <style>
+      body {
+        padding: 20px;
+        font-family: sans-serif;
+      }
+      .container {
+        max-width: 600px;
+        margin: auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+      }
+      .container > h1 {
+        text-align: center;
+      }
+      #user-list-container {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        width: 100%;
+      }
+      .user-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        padding: 12px;
+        border-bottom: 1px solid #eee;
+        text-decoration: none;
+        color: inherit;
+        transition: background-color 0.2s ease-in-out;
+      }
+      .user-card:hover {
+        background-color: #f9f9f9;
+      }
+      .user-card img {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+      }
+      .user-card-info strong {
+        display: block;
+        font-size: 16px;
+      }
+      .user-card-info a {
+        color: #555;
+        text-decoration: none;
+        font-size: 14px;
+      }
+      .user-card-info a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <a
+        class="back-button"
+        href="/"
+        style="
+          text-decoration: none;
+          display: inline-block;
+          margin-bottom: 20px;
+          background: #f0f0f0;
+          padding: 10px 15px;
+          border-radius: 8px;
+          color: #333;
+          font-weight: 600;
+        "
+        >&larr; Back to Profile Page</a
+      >
+      <h1>Friends</h1>
+      <div id="user-list-container">Loading...</div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const pathParts = window.location.pathname.split("/");
+        const authorSerial = pathParts[2];
+        const container = document.getElementById("user-list-container");
+
+        fetch(`/api/authors/${authorSerial}/friends/`)
+          .then((res) => res.json())
+          .then((data) => {
+            container.innerHTML = "";
+            const users = data.friends || [];
+            if (users.length === 0) {
+              container.textContent = "No friends found.";
+              return;
+            }
+            users.forEach((user) => {
+              const userCard = document.createElement("a");
+              userCard.className = "user-card";
+              const userSerialParts = user.id.split("/").filter(Boolean);
+              const userSerial =
+                userSerialParts[userSerialParts.length - 1];
+              userCard.href = `/authors/${userSerial}/`;
+              
+              const img = document.createElement('img');
+              img.alt = 'Profile Picture';
+              if (user.profileImage) {
+                  img.src = user.profileImage;
+                  img.onerror = function() {
+                      this.src = '/static/images/defaultprofile.webp';
+                  };
+              } else {
+                  img.src = '/static/images/defaultprofile.webp';
+              }
+              
+              const infoDiv = document.createElement('div');
+              infoDiv.className = 'user-card-info';
+              infoDiv.innerHTML = `
+                  <strong>${user.displayName}</strong>
+                  <a href="${user.github}" target="_blank">${user.github.replace(/https?:\/\//, '')}</a>
+              `;
+              
+              userCard.appendChild(img);
+              userCard.appendChild(infoDiv);
+              container.appendChild(userCard);
+            });
+          })
+          .catch((err) => {
+            container.innerHTML =
+              '<p style="color: red;">Failed to load friends.</p>';
+            console.error(err);
+          });
+
+          const backButton = document.querySelector('.back-button');
+          
+          backButton.addEventListener('click', function(event)  {
+            event.preventDefault(); 
+            window.history.back();  
+          });
+      });
+      
+    </script>
+  </body>
+</html>

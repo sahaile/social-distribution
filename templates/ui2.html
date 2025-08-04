@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline'; img-src *"> <!-- This creates a barrier for XSS for most cases. js contains many inline style attributes and we have an inline script that is difficult to move. We use external image links for profile pictures -->
+
+    <title>Home | Social Distribution</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="/static/css/ui2.css" />
+  </head>
+  <body>
+    <div class="section-container">
+
+        <div class="menu-container" id="menu">
+            <!-- Left Side Logo -->
+            <div id="logo">
+                <img src="/static/images/logoimg2.png" alt="Logo">
+                <div>
+                    <h2>SOCIAL</h2>
+                    <h1>DISTRIBUTION</h1>
+                </div>
+            </div>
+
+            <!-- Left Side User Info -->
+            <div class="profile-section">
+                <img 
+                    class="profile-pic" 
+                    src="/static/images/defaultprofile.webp" 
+                    alt="Profile Picture" 
+                />
+                <div class="profile-info">
+                    <p class="profile-name"></p>
+                    <p class="profile-id"></p>
+                </div>
+            </div>
+
+            <!-- Left Side Menu Items -->
+            <div id="menu-items">
+                <div class="menu-item" id="home-menu-button">
+                    <img src="/static/icons/house-solid-full.svg" alt="House Icon" />
+                    <pid="home-menu-text">Home</p>
+                </div>
+                <div class="menu-item" id="profile-menu-button">
+                    <img src="/static/icons/user-solid-full.svg" alt="Profile Icon" />
+                    <p>Profile</p>
+                </div>
+                <div class="menu-item" id="connect-menu-button">
+                    <img src="/static/icons/people-group-solid-full.svg" alt="Connect Icon" />
+                    <p>Connect</p>
+                </div>
+                <div class="menu-item" id="post-menu-button">
+                    <img src="/static/icons/square-plus-solid-full.svg" alt="Post Icon" />
+                    <p>Post</p>
+                    
+                </div>
+            </div>
+            
+            <!-- Left Side Logout -->
+            <form method="POST" action="/logout/">
+                {% csrf_token %}
+                <button class="logout-button" type="submit">Logout</button>
+            </form>
+        </div>
+
+        <div class="verticalDivider"></div>
+
+        <!-- Center column: Feed -->
+        <div class="main-feed">
+            <div class="stream-header">
+                <h1>Stream</h1>
+                    <!-- Post Tweet Button -->
+                <button id="post-toggle-button">
+                    <img src="/static/icons/square-plus-solid-full.svg" alt="Post Icon" />
+                </button>
+            </div>
+            
+            <!-- Post Tweet Section -->
+            <section class="post-tweet-modal" style="display: none;">
+                <div class="modal-content post-tweet">
+                    <h2 id="post-tweet-text">Post An Entry</h2>
+                    <div class="horizontalDivider"></div>
+                    <form id="post-entry" method="post" action="javascript:void(0);">
+                        {% csrf_token %}
+                        <h3 class="form-text" >Title</h3>
+                        <input 
+                            id="post_entry_title--input" 
+                            type="text" 
+                            name="title" 
+                        />
+                        <h3 class="form-text">Description</h3>
+                        <textarea
+                            id="post_entry_description--input"
+                            name="description"
+                            rows="2"
+                        ></textarea>
+                        <h3 class="form-text">Share</h3>
+                        <textarea
+                            id="post_entry_content_text--input"
+                            name="content"
+                            placeholder="What's on your mind?"
+                            rows="6"
+                        ></textarea>
+                        <input 
+                            id="post_entry_content_file--input"
+                            type="file"
+                            accept="image/*"
+                            name="content"
+                            hidden
+                        />
+                        <div id="post_entry_actions--div">
+                            <select id="post_entry_visibility--select" name="visibility">
+                                <option value="PUBLIC">Public</option>
+                                <option value="UNLISTED">Unlisted</option>
+                                <option value="FRIENDS">Friends-only</option>
+                            </select>
+
+                            <select id="post_entry_content_type--select" name="content-type">
+                                <option value="text/plain">Plain Text</option>
+                                <option value="text/markdown">Markdown</option>
+                                <option value="image">Image</option>
+                            </select>
+
+                            <button type="submit" id="submit-button">Post</button>
+                        </div>
+                    </form>
+                    <button id="close-modal" class="close-button">X</button>
+                </div>
+            </section>
+
+
+            <!-- Horizontal Divider -->
+            <div class="horizontalDivider"></div>
+
+            <!-- Tweets List -->
+            <div class="tweet-list">
+                <!-- Populated by JS -->
+            </div>
+
+        </div>
+
+        <div class="verticalDivider"></div>
+
+        <!-- Right column: Search, Friend Requests, Notifications -->
+        <div class="right-container">
+            <section class="section">
+                <h2 class="section-title">Search</h2>
+                <input
+                    id="search-input"
+                    type="text"
+                    placeholder="Search authors..."
+                />
+                <div id="search-results-list">
+                    <!-- Search results will be populated here -->
+                </div>
+            </section>
+            <section class="section">
+                <h2 class="section-title">Friend Requests</h2>
+                <div class="friend-requests-list">
+                    <!-- Populated by JS -->
+                </div>
+            </section>
+        </div>
+    </div>
+    <script type="module" src="{% static 'renderer.min.js' %}"></script>
+    <script>
+      window.currentUserSerial = '{{ current_user_uuid|escapejs }}'
+      window.currentEntrySerial = '{{ current_entry_uuid|escapejs }}'
+      window.currentEntryAuthorSerial = '{{ current_entry_author_uuid|escapejs }}'
+      window.currentNodeName = '{{ current_node_name|escapejs }}'
+    </script>
+    <script type="module" src="{% static 'main.js' %}"></script>
+  </body>
+  </html>

@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>User Profile</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/static/css/ui.css">
+  <style>
+    .container {
+      max-width: 700px;
+      margin: 20px auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 30px;
+    }
+    .profile-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+      text-align: center;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #eee;
+      width: 100%;
+    }
+    .profile-header img {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background-color: #f0f0f0;
+    }
+    .profile-display-name {
+      font-size: 24px;
+      font-weight: bold;
+      min-height: 30px;
+    }
+    .friend-badge {
+      background-color: #e0f2fe;
+      color: #0c546e;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-left: 10px;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .profile-stats {
+      margin-top: 15px;
+      display: flex;
+      gap: 15px;
+      font-size: 14px;
+    }
+    .profile-stats a {
+      color: #333;
+      text-decoration: none;
+    }
+    .github-link {
+      margin-top: 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .profile-edit-container {
+      width: 100%;
+    }
+    .profile-edit-container h2 {
+      margin-bottom: 10px;
+    }
+    .profile-edit-container form label {
+      display: block;
+      margin-bottom: 8px;
+    }
+    .profile-edit-container form input {
+      width: 100%;
+      padding: 6px;
+      margin-top: 4px;
+      box-sizing: border-box;
+    }
+    .profile-edit-container button {
+      margin-top: 10px;
+      padding: 8px 16px;
+      font-size: 14px;
+    }
+    #update-status {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="/" style="text-decoration: none; display: inline-block; margin-bottom: 20px; background: #f0f0f0; padding: 10px 15px; border-radius: 8px; color: #333; font-weight: 600;">&larr; Back to Main Page</a>
+    <!-- Profile Header -->
+    <header class="profile-header" id="profile-header-container">
+        <img id="profile-pic" src="/static/images/defaultprofile.webp" alt="Profile Picture">
+        <div id="profile-name-container" class="profile-display-name">
+          Loading...
+        </div>
+        <div class="profile-stats" style="margin-top: 15px; display: flex; gap: 15px; font-size: 14px;">
+          <a href="#" id="following-link" style="color: #333; text-decoration: none;">
+            <strong id="following-count">0</strong> Following
+          </a>
+          <a href="#" id="followers-link" style="color: #333; text-decoration: none;">
+            <strong id="followers-count">0</strong> Followers
+          </a>
+        </div>
+
+        <!-- GitHub link will be on the second row -->
+        <a href="https://github.com/yourname" class="github-link" target="_blank" style="margin-top: 10px; display: inline-block;">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="#24292f" style="margin-right:3px;">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49C3.73 14.09 3.28 12.81 3.28 12.81c-.36-.92-.88-1.16-.88-1.16-.72-.49.05-.48.05-.48.8.06 1.22.83 1.22.83.71 1.22 1.87.87 2.33.66.07-.52.28-.87.51-1.07-2.22-.25-4.56-1.11-4.56-4.93 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02A9.56 9.56 0 018 4.43c.85.004 1.71.12 2.51.35 1.9-1.29 2.74-1.02 2.74-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.83-2.34 4.68-4.57 4.92.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.19 0 .21.15.46.55.38C13.71 14.53 16 11.54 16 8c0-4.42-3.58-8-8-8z"></path>
+          </svg>
+        </a>
+      </header>
+
+    <!-- Edit Profile Form -->
+    <div class="profile-edit-container">
+      <h2>Edit Profile</h2>
+      <form id="author-edit-form">
+        <label>
+          Display Name:
+          <input type="text" id="display-name">
+        </label>
+        <label>
+          GitHub URL:
+          <input type="url" id="github-url" placeholder="https://github.com/username">
+        </label>
+        <label>
+          Profile Image:
+          <input type="file" id="profile-image-upload" accept="image/png, image/jpeg">
+        </label>
+        <button type="submit">Save Changes</button>
+      </form>
+      <div id="update-status"></div>
+    </div>
+  </div>
+  <script src="/static/cookies.js"></script>
+  <script>
+    function getCSRFToken() {
+      // First try to get it from the meta tag (if server provides it)
+      const metaToken = document.querySelector('meta[name="csrf-token"]')
+      if (metaToken) {
+        const token = metaToken.getAttribute('content')
+        return token
+      }
+
+      const decodedCookie = decodeURIComponent(document.cookie)
+      const ca = decodedCookie.split(';')
+
+      // Get node name from server-provided variable
+      const nodeName = window.currentNodeName || 'default'
+
+      // Now look for the CSRF token for this specific node
+      const expectedCookieName = `csrftoken_${nodeName}`
+
+      for (let i = 0; i < ca.length; i++) {
+        const c = ca[i].trim()
+        if (c.indexOf(expectedCookieName + '=') === 0) {
+          const token = c.substring(expectedCookieName.length + 1)
+          return token
+        }
+      }
+
+      // Fallback: use any csrftoken_* cookie if node-specific one not found
+      for (let i = 0; i < ca.length; i++) {
+        const c = ca[i].trim()
+        if (c.indexOf('csrftoken_') === 0) {
+          const equalsIndex = c.indexOf('=')
+          if (equalsIndex !== -1) {
+            const token = c.substring(equalsIndex + 1)
+            return token
+          }
+        }
+      }
+      return ''
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const authorSerial = window.location.pathname.split("/")[2];
+
+      let author = null;
+      
+      const displayNameInput = document.getElementById("display-name");
+      const githubInput = document.getElementById("github-url");
+      const profileImageUpload = document.getElementById("profile-image-upload");
+      const form = document.getElementById("author-edit-form");
+      const statusMsg = document.getElementById("update-status");
+
+      const profilePic = document.getElementById("profile-pic");
+      const nameContainer = document.getElementById("profile-name-container");
+      const githubLinkElement = document.querySelector(".github-link");
+      const githubUsernameSpan = document.getElementById("github-username");
+
+      // Load profile
+      fetch(`/api/authors/${authorSerial}/`, {credentials: 'include' })
+        .then(res => {
+          if (!res.ok) throw new Error("Failed to fetch profile data");
+          return res.json();
+        })
+        .then(data => {
+          if (!data) return;
+          author = data
+          const authorId = author.id || author.serial || author.uuid || "";
+
+          document.getElementById('following-count').textContent = author.following_count ?? 0;
+          document.getElementById('followers-count').textContent = author.followers_count ?? 0;
+          document.getElementById('following-link').href = `/authors/${authorSerial}/following/`;
+          document.getElementById('followers-link').href = `/authors/${authorSerial}/followers/`;
+
+        
+          nameContainer.textContent = author.displayName || "Unnamed User";
+          
+          if (author.github) {
+            let ghLink = author.github
+            if (!ghLink.startsWith('http')) ghLink = 'https://github.com/' + ghLink
+            const githubLinkElement = document.querySelector('.github-link')
+            githubLinkElement.href = ghLink
+            // Extract just the username for the link text
+            githubLinkElement.childNodes[2].nodeValue = ' ' + author.github.split('/').pop()
+          }
+
+          displayNameInput.value = author.displayName || "";
+          githubInput.value = author.github || "";
+          
+          document.title = `${author.displayName}'s Profile`;
+          
+          // Update profile image with error handling
+          if (author.profileImage) {
+            profilePic.src = author.profileImage;
+            profilePic.onerror = function() {
+              this.src = "/static/images/defaultprofile.webp";
+            };
+          } else {
+            profilePic.src = "/static/images/defaultprofile.webp";
+          }
+          
+          nameContainer.textContent = author.displayName || "Unnamed User";
+
+        })
+        .catch(err => {
+          console.error(err);
+          statusMsg.textContent = "Could not load profile data.";
+          statusMsg.style.color = "red";
+        });
+
+      form.addEventListener("submit", async e => {
+        e.preventDefault();
+
+        const csrftoken = getCSRFToken();
+        statusMsg.textContent = "Updating...";
+        statusMsg.style.color = "orange";
+
+        try {
+          let newImageUrl = null;
+          const file = profileImageUpload.files[0];
+
+          if (file) {
+            // 1. If an image is uploaded, create a new entry for it
+            const content = await toBase64(file);
+            const contentType = file.type === 'image/png' ? 'image/png;base64' : 'image/jpeg;base64';
+            
+            const entryRes = await fetch(`/api/authors/${authorSerial}/entries/`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-Csrftoken": csrftoken
+              },
+              body: JSON.stringify({
+                title: "New Profile Picture",
+                description: "A new profile picture was uploaded.",
+                contentType: contentType,
+                content: content,
+                visibility: "PUBLIC"
+              }),
+              credentials: 'include'
+            });
+
+            if (!entryRes.ok) {
+              const errorData = await entryRes.json();
+              throw new Error(`Failed to create image entry: ${JSON.stringify(errorData)}`);
+            }
+
+            const newEntry = await entryRes.json();
+            const newImageUrlPath = new URL(newEntry.id, window.location.origin).pathname;
+            newImageUrl = `${window.location.origin}${newImageUrlPath}/image`;
+          }
+
+          // 2. Update author profile with other fields and new image URL if available
+          const updatedAuthor = {};
+          const displayNameVal = displayNameInput.value.trim();
+          if (displayNameVal) {
+            updatedAuthor.displayName = displayNameVal;
+          }
+
+          const githubVal = githubInput.value.trim();
+          if (githubVal) {
+            updatedAuthor.github = githubVal;
+          }
+
+          if (newImageUrl) {
+            updatedAuthor.profileImage = newImageUrl;
+          }
+
+          if (Object.keys(updatedAuthor).length > 0) {
+            const authorUpdateRes = await fetch(`/api/authors/${authorSerial}/`, {
+              method: "PATCH",
+              headers: {
+                "Content-Type": "application/json",
+                "X-Csrftoken": csrftoken
+              },
+              body: JSON.stringify(updatedAuthor),
+              credentials: 'include'
+            });
+
+            if (!authorUpdateRes.ok) {
+              const errorData = await authorUpdateRes.json();
+              throw new Error(`Failed to update profile: ${JSON.stringify(errorData)}`);
+            }
+            
+            const updatedAuthorData = await authorUpdateRes.json();
+            // Update UI with new data and error handling
+            if (updatedAuthorData.profileImage) {
+              profilePic.src = updatedAuthorData.profileImage;
+              profilePic.onerror = function() {
+                this.src = "/static/images/defaultprofile.webp";
+              };
+            } else {
+              profilePic.src = "/static/images/defaultprofile.webp";
+            }
+
+          }
+          
+          statusMsg.textContent = "Profile updated successfully!";
+          statusMsg.style.color = "green";
+
+        } catch (error) {
+          console.error(error);
+          statusMsg.textContent = error.message;
+          statusMsg.style.color = "red";
+        }
+      });
+      
+      const toBase64 = file => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => {
+          let encoded = reader.result.toString().replace(/^data:(.*,)?/, '');
+          if ((encoded.length % 4) > 0) {
+            encoded += '='.repeat(4 - (encoded.length % 4));
+          }
+          resolve(encoded);
+        };
+        reader.onerror = error => reject(error);
+      });
+
+    });
+  </script>
+</body>
+</html>

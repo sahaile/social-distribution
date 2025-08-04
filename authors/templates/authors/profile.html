@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline'; img-src *"> <!-- This creates a barrier for XSS for most cases. js contains many inline style attributes and we have an inline script that is difficult to move. We use external image links for profile pictures -->
+
+    <title>{{ profile_author.display_name }} | Social Distribution</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="/static/css/profile.css" />
+  </head>
+  <body>
+    <div class="section-container">
+
+        <div class="menu-container" id="menu">
+            <!-- Left Side Logo -->
+            <div id="logo">
+                <img src="/static/images/logoimg2.png" alt="Logo">
+                <div>
+                    <h2>SOCIAL</h2>
+                    <h1>DISTRIBUTION</h1>
+                </div>
+            </div>
+
+            <!-- Left Side User Info -->
+            <div class="profile-section">
+                <img 
+                    class="profile-pic" 
+                    src="/static/images/defaultprofile.webp" 
+                    alt="Profile Picture" 
+                />
+                <div class="profile-info">
+                    <p class="profile-name"></p>
+                    <p class="profile-id"></p>
+                </div>
+            </div>
+
+            <!-- Left Side Menu Items -->
+            <div id="menu-items">
+                <div class="menu-item" id="home-menu-button">
+                    <img src="/static/icons/house-solid-full.svg" alt="House Icon" />
+                    <p>Home</p>
+                </div>
+                <div class="menu-item" id="profile-menu-button">
+                    <img src="/static/icons/user-solid-full.svg" alt="Profile Icon" />
+                    <p>Profile</p>
+                </div>
+                <div class="menu-item" id="connect-menu-button">
+                    <img src="/static/icons/people-group-solid-full.svg" alt="Connect Icon" />
+                    <p>Connect</p>
+                </div>
+                <div class="menu-item" id="post-menu-button">
+                    <img src="/static/icons/square-plus-solid-full.svg" alt="Post Icon" />
+                    <p>Post</p>
+                </div>
+            </div>
+            
+            <!-- Left Side Logout -->
+            <form method="POST" action="/logout/">
+                {% csrf_token %}
+                <button class="logout-button" type="submit">Logout</button>
+            </form>
+        </div>
+
+        <div class="verticalDivider"></div>
+
+      <div class="container">
+        <div class="profile-header" id="profile-header-container">
+          <img id="profile-pic-bio" class="profile-pic-bio" src="/static/images/defaultprofile.webp" alt="Profile Picture">
+          <div class="profile-text">
+            <div id="display-edit-container">
+              <div id="profile-name-container" class="profile-display-name">
+                Loading...
+              </div>
+              <button class="pen-btn" id="edit-link" title="Edit Profile">
+                <svg class="pen-icon" viewBox="0 0 24 24" fill="none" width="24" height="24">
+                  <path
+                    d="M15.232 5.232l3.536 3.536M16.732 3.732a2.5 2.5 0 113.536 3.536L7.5 20.036l-4 1 1-4L16.732 3.732z"
+                    stroke="#555"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
+            <p id="profile-id-bio" class="profile-id-bio"></p>
+            <!-- GitHub link will be on the second row -->
+            <a href="https://github.com/yourname" class="github-link" target="_blank" style=" display: inline-block;">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="#24292f" style="margin-right:3px;">
+                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49C3.73 14.09 3.28 12.81 3.28 12.81c-.36-.92-.88-1.16-.88-1.16-.72-.49.05-.48.05-.48.8.06 1.22.83 1.22.83.71 1.22 1.87.87 2.33.66.07-.52.28-.87.51-1.07-2.22-.25-4.56-1.11-4.56-4.93 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02A9.56 9.56 0 018 4.43c.85.004 1.71.12 2.51.35 1.9-1.29 2.74-1.02 2.74-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.83-2.34 4.68-4.57 4.92.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.19 0 .21.15.46.55.38C13.71 14.53 16 11.54 16 8c0-4.42-3.58-8-8-8z"></path>
+              </svg>
+              yourname
+            </a>
+          </div>
+          <div class="profile-stats" style="display: flex; gap: 15px; font-size: 14px;">
+              <a href="#" id="following-link" style="color: #333; text-decoration: none;">
+                <strong id="following-count">0</strong> Following
+              </a>
+              <a href="#" id="followers-link" style="color: #333; text-decoration: none;">
+                <strong id="followers-count">0</strong> Followers
+              </a>
+               <a href="#" id="friends-link" style="color: #333; text-decoration: none;">
+                <strong id="friends-count">0</strong> Friends
+              </a>
+            </div>        
+        </div>
+
+
+        <!-- Entries Feed - still rendered by server -->
+        <div class="tweet-list">
+        </div>
+        <div id="empty-feed-message" style="color: #999; text-align: center; padding: 40px">
+            This user has no visible entries.
+          </div>
+
+          <div class="edit-modal-container" id="edit-modal-container" style="display:none;">
+            <div class="edit-modal-content">
+              <button id="close-modal" class="close-button">X</button>
+              <!-- Edit Profile Form -->
+              <div class="profile-edit-container">
+                <h2>Edit Profile</h2>
+                <form id="author-edit-form">
+                  <label>
+                    Display Name:
+                    <input type="text" id="display-name">
+                  </label>
+                  <label>
+                    GitHub URL:
+                    <input type="url" id="github-url" placeholder="https://github.com/username">
+                  </label>
+                  <label>
+                    Profile Image:
+                    <input type="file" id="profile-image-upload" accept="image/png, image/jpeg">
+                  </label>
+                  <button type="submit">Save Changes</button>
+                </form>
+                <div id="update-status"></div>
+              </div>
+            </div>
+          </div>
+    </div>
+    <script type="module" src="{% static 'renderer.min.js' %}"></script>
+    <script>
+      window.entries = JSON.parse('{{ entries_json|escapejs }}');
+      window.is_friend = '{{ is_friend|escapejs }}'
+      window.currentAuthor = {
+          serial: "{{ currentAuthor.serial|escapejs }}",
+          displayName: "{{ currentAuthor.display_name|escapejs }}",
+          github: "{{ currentAuthor.github|escapejs }}",
+          profileImage: "{{ currentAuthor.profile_image|escapejs }}"
+        }; 
+    </script>
+    <script type="module" src="{% static 'profile.js' %}"></script>
+  </body>
+  </html>

@@ -1,0 +1,258 @@
+<!-- following.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Following</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/static/css/ui.css">
+    <style>
+        body { padding: 20px; font-family: sans-serif; }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        .container > h1 {
+            text-align: center;
+        }
+        #user-list-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0; /* Gap is now on the wrapper */
+            width: 100%;
+        }
+        .user-card-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .user-card-wrapper:hover {
+            background-color: #f9f9f9;
+        }
+        .user-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: inherit;
+            flex-grow: 1;
+        }
+        .user-card img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+        }
+        .user-card-info strong {
+            display: block;
+            font-size: 16px;
+        }
+        .user-card-info a {
+            color: #555;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .user-card-info a:hover {
+            text-decoration: underline;
+        }
+        .unfollow-btn {
+            padding: 6px 12px;
+            border: 1px solid #ccc;
+            background-color: #fff;
+            color: #d9534f;
+            border-color: #d43f3a;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-left: 15px;
+            white-space: nowrap;
+        }
+        .unfollow-btn:hover {
+            background-color: #d9534f;
+            color: #fff;
+        }
+        .unfollow-btn:disabled {
+            background-color: #ccc;
+            border-color: #bbb;
+            color: #777;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a class="back-button" href="/" style="text-decoration: none; display: inline-block; margin-bottom: 20px; background: #f0f0f0; padding: 10px 15px; border-radius: 8px; color: #333; font-weight: 600;">&larr; Back to Profile Page</a>
+        <h1>Following</h1>
+        <div id="user-list-container">Loading...</div>
+    </div>
+
+    <script>
+        // Helper function to get CSRF token from cookies (multi-node aware)
+        function getCSRFToken() {
+            // First try to get it from the meta tag (if server provides it)
+            const metaToken = document.querySelector('meta[name="csrf-token"]');
+            if (metaToken) {
+                const token = metaToken.getAttribute('content');
+                return token;
+            }
+
+            const decodedCookie = decodeURIComponent(document.cookie);
+            const ca = decodedCookie.split(';');
+
+            // Get node name from server-provided variable
+            const nodeName = window.currentNodeName || 'default';
+
+            // Now look for the CSRF token for this specific node
+            const expectedCookieName = `csrftoken_${nodeName}`;
+
+            for (let i = 0; i < ca.length; i++) {
+                const c = ca[i].trim();
+                if (c.indexOf(expectedCookieName + '=') === 0) {
+                    const token = c.substring(expectedCookieName.length + 1);
+                    return token;
+                }
+            }
+
+            // Fallback: use any csrftoken_* cookie if node-specific one not found
+            for (let i = 0; i < ca.length; i++) {
+                const c = ca[i].trim();
+                if (c.indexOf('csrftoken_') === 0) {
+                    const equalsIndex = c.indexOf('=');
+                    if (equalsIndex !== -1) {
+                        const token = c.substring(equalsIndex + 1);
+                        return token;
+                    }
+                }
+            }
+            return '';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentUserSerial = "{{ current_user.serial|escapejs }}";           
+            const pathParts = window.location.pathname.split('/');
+            const authorSerial = pathParts[2]; // The persons page that we are viewing
+            const container = document.getElementById('user-list-container');
+
+            fetch(`/api/authors/${authorSerial}/following/`)
+                .then(res => res.json())
+                .then(data => {
+                    container.innerHTML = '';
+                    const users = data.following || [];
+                    if (users.length === 0) {
+                        container.textContent = 'Not following anyone.';
+                        return;
+                    }
+                    users.forEach(user => {
+                        const userSerialParts = user.id.split('/').filter(Boolean);
+                        const userSerial = userSerialParts[userSerialParts.length - 1];
+
+                        const wrapper = document.createElement('div');
+                        wrapper.className = 'user-card-wrapper';
+                        
+                        const userCard = document.createElement('a');
+                        userCard.className = 'user-card';
+                        userCard.href = `/authors/${userSerial}/`;
+                        
+                        const img = document.createElement('img');
+                        img.alt = 'Profile Picture';
+                        if (user.profileImage) {
+                            img.src = user.profileImage;
+                            img.onerror = function() {
+                                this.src = '/static/images/defaultprofile.webp';
+                            };
+                        } else {
+                            img.src = '/static/images/defaultprofile.webp';
+                        }
+                        
+                        const infoDiv = document.createElement('div');
+                        infoDiv.className = 'user-card-info';
+                        infoDiv.innerHTML = `
+                            <strong>${user.displayName}</strong>
+                            <a href="${user.github}" target="_blank" onclick="event.stopPropagation()">${user.github.replace(/https?:\/\//, '')}</a>
+                        `;
+                        
+                        const unfollowBtn = document.createElement('button');
+                        unfollowBtn.className = 'unfollow-btn';
+                        unfollowBtn.dataset.userSerial = userSerial;
+                        unfollowBtn.textContent = 'Unfollow';
+
+                        if (authorSerial !== currentUserSerial) {
+                            unfollowBtn.style.display = 'none'; 
+                        }
+                        
+                        
+                        userCard.appendChild(img);
+                        userCard.appendChild(infoDiv);
+                        wrapper.appendChild(userCard);
+                        wrapper.appendChild(unfollowBtn);
+                        container.appendChild(wrapper);
+                    });
+
+                    // Add event listeners to all new buttons
+                    container.querySelectorAll('.unfollow-btn').forEach(button => {
+                        button.addEventListener('click', handleUnfollow);
+                    });
+                })
+                .catch(err => {
+                    container.innerHTML = '<p style="color: red;">Failed to load following list.</p>';
+                    console.error(err);
+                });
+
+            function handleUnfollow(event) {
+                const button = event.currentTarget;
+                button.disabled = true;
+                button.textContent = '...';
+
+                const userToUnfollowSerial = button.dataset.userSerial;
+
+                // The API endpoint is DELETE /api/authors/{FOLLOWED}/followers/{FQID}/
+                // Here, the user being unfollowed is the "followed" party.
+                // The person viewing the page is the "follower" (FQID).
+                const followerFqid = `${window.location.origin}/authors/${authorSerial}`;
+                const encodedFqid = encodeURIComponent(followerFqid);
+                const apiUrl = `/api/authors/${userToUnfollowSerial}/followers/${encodedFqid}/`;
+
+                fetch(apiUrl, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRFToken': getCSRFToken(),
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (response.status === 204) { // 204 No Content is a success
+                        // On success, remove the card from the DOM
+                        button.closest('.user-card-wrapper').remove();
+                    } else {
+                        // Handle HTTP errors
+                        response.json().then(err => {
+                            console.error('Failed to unfollow user:', err.detail);
+                            alert(`Could not unfollow user: ${err.detail}`);
+                        });
+                        button.disabled = false;
+                        button.textContent = 'Unfollow';
+                    }
+                })
+                .catch(error => {
+                    console.error('Network error:', error);
+                    alert('An error occurred. Please check your connection and try again.');
+                    button.disabled = false;
+                    button.textContent = 'Unfollow';
+                });
+            }
+            const backButton = document.querySelector('.back-button');
+          
+            backButton.addEventListener('click', function(event)  {
+                event.preventDefault(); 
+                window.history.back();  
+            });
+        });
+    </script>
+</body>
+</html>

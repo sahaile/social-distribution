@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Register | Social Distribution</title>
+  <link rel="stylesheet" href="/static/css/register.css">
+</head>
+<body>
+  <div class="container">
+    <div id="logo">
+      <img src="/static/images/logoimg2.png" alt="Logo">
+      <div>
+        <h2>SOCIAL</h2>
+        <h1>DISTRIBUTION</h1>
+      </div>
+    </div>
+    <h2>Create an Account</h2>
+    <form method="POST" novalidate>
+      {% csrf_token %}
+      
+      {% for field in registerform %}
+        <label for="{{ field.id_for_label }}">
+          {{ field.label }}
+          {% if field.name == 'github' or field.name == 'profile_image' %}
+            <span style="color: #666; font-size: 0.9em;">(optional)</span>
+          {% endif %}
+        </label>
+        {{ field }}
+        {% if field.errors %}
+          <div class="errorlist">
+            {% for error in field.errors %}
+              <div>{{ error }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endfor %}
+      <button type="submit">Sign Up</button>
+    </form>
+    <div class="login-link">
+      Already have an account? <a href="/login/">Log in</a>
+    </div>
+  </div>
+</body>
+</html>

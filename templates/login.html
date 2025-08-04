@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" >
+  <meta name="viewport" content="width=device-width, initial-scale=1" >
+  <title>Login | Social Distribution</title>
+  <link rel="stylesheet" href="/static/css/login.css">
+</head>
+<body>
+  <div class="container">
+    <div id="logo">
+      <img src="/static/images/logoimg2.png" alt="Logo">
+      <div>
+          <h2>SOCIAL</h2>
+          <h1>DISTRIBUTION</h1>
+      </div>
+  </div>
+    <h2>Login</h2>
+    <form method="post">
+      {% csrf_token %}
+
+      {% if loginform.non_field_errors %}
+        <div class="form-errors">
+          {% for error in loginform.non_field_errors %}
+            <p>{{ error }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <div class="form-group">
+        <label>Username</label>
+        {{ loginform.username }}
+      </div>
+
+      <div class="form-group">
+        <label>Password</label>
+        {{ loginform.password }}
+      </div>
+
+      <button type="submit">Login</button>
+      <div class="login-link">
+      Don't have an account? <a href="/register/">Sign up</a>
+    </div>
+    </form>
+  </div>
+</body>
+</html>
