@@ -2,7 +2,8 @@ SocialDistribution
 ===================================
 
 ## Deployed Website
-[Social Distribution Website]([https://social-distribution-aqua-simon-5ef58288e759.herokuapp.com/])
+
+[Live Demo](https://social-distribution-aqua-simon-5ef58288e759.herokuapp.com/)
 
 ## License
 
