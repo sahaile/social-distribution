@@ -1,21 +1,9 @@
 SocialDistribution
 ===================================
 
-CMPUT 404 Spring/Summer 2025 Project
-
-See [the web page](https://uofa-cmput404.github.io/general/project.html) for a description of the project.
-
-Make a distributed social network!
-
-## Team Members
-| CCID     | Github Username                                         |
-|----------|---------------------------------------------------------|
-| ziqi24   | [ziqizhang42](https://github.com/ziqizhang42)           |
-| lyunze   | [Davidsharkdododo](https://github.com/Davidsharkdododo) |
-| sahaile  | [sahaile](https://github.com/sahaile)                   |
-| jns      | [Nosajsom](https://github.com/Nosajsom)                 |
-| shaian   | [ShaianSh](https://github.com/ShaianSh)                 |
-| zejia    | [Jameszf](https://github.com/Jameszf)                   |
+## Deployed Website
+[Social Distribution Website]([https://link-url-here.org](https://social-distribution-aqua-simon-5ef58288e759.herokuapp.com/
+))
 
 ## License
 
